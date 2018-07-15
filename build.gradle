@@ -1,0 +1,113 @@
+buildscript {
+    ext {
+        springBootVersion = '1.5.3.RELEASE'
+        jacocoVersion = "0.7.6.201602180812"
+        artifactoryUrl = 'https://art-bobcat.autodesk.com/artifactory/autodesk-libs-snapshot-maven'        
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: "jacoco"
+apply plugin: 'maven-publish'
+
+group = 'com.sample'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+
+jar {
+	baseName = "sample"
+    version = project.version
+}
+
+publish {
+    dependsOn assemble
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = project.group
+            artifactId = jar.baseName
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                username System.getenv("username")
+                password System.getenv("password")
+            }
+            url "$artifactoryUrl"
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+jacoco {
+    toolVersion = project.jacocoVersion
+    reportsDir = file("${project.buildDir}/reports/codecoverage")
+}
+
+dependencies {
+    compile('org.springframework.boot:spring-boot-starter-actuator')
+    compile('org.springframework.boot:spring-boot-actuator-docs')
+    compile('org.springframework.cloud:spring-cloud-starter-hystrix')
+    compile('org.springframework.boot:spring-boot-starter-jersey')
+    compile('org.springframework.boot:spring-boot-starter-web')
+    compile group: 'org.springframework.retry', name: 'spring-retry', version: '1.2.2.RELEASE'
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+
+
+//--Configure Integration Tests, they utilize full running server--//
+
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/java')
+        }
+        resources.srcDir file('src/integration-test/resources')
+    }
+}
+
+configurations {
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+}
+
+task integrationTest(type: Test) {
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    outputs.upToDateWhen { false }
+}
+
+check.dependsOn integrationTest
+integrationTest.mustRunAfter test
+
+
+// Dependency Management using maven bill of materials
+
+ext {
+    springCloudVersion = 'Dalston.RELEASE'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}

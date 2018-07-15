@@ -1,6 +1,7 @@
 package com.sample.servicename.resources;
 
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
@@ -14,8 +15,16 @@ public class SampleResource {
 
   @POST
   @Produces("text/plain")
-  public String getSample() {
+  public String testSpringRetry() {
     return shellComponent.sampleMethod();
+  }
+
+  @PUT
+  @Produces("text/plain")
+  public String testJava8Retry() {
+    RetryableSampleComponentJava8 retryableSampleComponent =
+        new RetryableSampleComponentJava8(new SampleComponent());
+    return retryableSampleComponent.sampleMethod();
   }
 
 }

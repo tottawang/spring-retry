@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/shell.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/webhooks%i.log</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>10</maxIndex>
+        </rollingPolicy>
+
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>20MB</maxFileSize>
+        </triggeringPolicy>
+        <encoder>
+            <pattern>%date %-5level [%X{X-Request-ID}] [%thread] %mdc{queue_name} %mdc{message_id}
+                %mdc{hook_id} [%logger{10}] %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date %-5level [%X{X-Request-ID}] [%thread] %mdc{queue_name} %mdc{message_id}
+                %mdc{hook_id} [%logger{10}] %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.autodesk" additivity="false">
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <root level="${LOG_LEVEL:-INFO}">
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>

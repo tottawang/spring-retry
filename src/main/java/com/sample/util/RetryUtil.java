@@ -15,7 +15,7 @@ public class RetryUtil {
     public Throwable error;
   }
 
-  public Response httpRetry(Supplier<Response> function) {
+  public String httpRetry(Supplier<String> function) {
     return retryable(function, HTTP_RETRY_TESTER);
   }
 
@@ -41,9 +41,9 @@ public class RetryUtil {
     return executionResult.result;
   }
 
-  public static final Function<ExecutionResult<Response>, Boolean> HTTP_RETRY_TESTER = (er) -> {
+  public static final Function<ExecutionResult<String>, Boolean> HTTP_RETRY_TESTER = (er) -> {
     if (null != er.result) {
-      return er.result.getStatus() >= 500;
+      return er.result.equals("fail");
     }
     return false;
   };
